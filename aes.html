@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AES Encrypt & Decrypt</title>
+  <style>
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    padding: 24px 16px 48px;
+    background: #eef2f1;
+    color: #14231f;
+    font: 16px/1.5 "Segoe UI", system-ui, sans-serif;
+  }
+
+  .title {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    max-width: 720px;
+    margin: 0 auto 6px;
+  }
+
+  h1 {
+    margin: 0;
+    font-size: 1.6rem;
+  }
+
+  .lock {
+    width: 26px;
+    height: 26px;
+    color: #0f6b5c;
+    flex: none;
+  }
+
+  .subtitle {
+    max-width: 720px;
+    margin: 0 auto 20px;
+    text-align: center;
+    color: #5b6b66;
+  }
+
+  section {
+    max-width: 720px;
+    margin: 0 auto 20px;
+    padding: 18px;
+    background: #fff;
+    border: 1px solid #c9d4d0;
+    border-radius: 10px;
+  }
+
+  h2 {
+    margin: 0 0 12px;
+    font-size: 1.1rem;
+  }
+
+  label {
+    display: block;
+    margin: 12px 0 4px;
+    font-size: 0.9rem;
+    color: #5b6b66;
+  }
+
+  input,
+  textarea {
+    width: 100%;
+    padding: 10px;
+    background: #eef2f1;
+    color: #14231f;
+    border: 1px solid #c9d4d0;
+    border-radius: 6px;
+    font: inherit;
+  }
+
+  textarea {
+    min-height: 110px;
+    resize: vertical;
+  }
+
+  button {
+    padding: 10px 18px;
+    border: 0;
+    border-radius: 6px;
+    font: inherit;
+    font-weight: 600;
+    color: #fff;
+    cursor: pointer;
+  }
+
+  #enc-btn { background: #0f6b5c; }
+  #dec-btn { background: #27405e; }
+
+  /* Password field with Show/Hide button */
+  .pw-row {
+    display: flex;
+    gap: 8px;
+  }
+
+  .pw-row input { flex: 1; min-width: 0; }
+
+  /* Secondary buttons: Show/Hide, Copy, Clear */
+  .ghost {
+    padding: 8px 14px;
+    background: #fff;
+    color: #14231f;
+    border: 1px solid #c9d4d0;
+    font-weight: 500;
+    font-size: 0.9rem;
+  }
+
+  .ghost:hover { background: #eef2f1; }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 14px;
+  }
+
+  /* Label row with Copy button beside it */
+  .out-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .out-head label { margin: 0; }
+
+  .msg {
+    min-height: 1.3em;
+    margin: 8px 0 0;
+    color: #b3261e;
+  }
+
+  .msg.ok { color: #0f6b5c; }
+
+  :focus-visible {
+    outline: 2px solid #0f6b5c;
+    outline-offset: 2px;
+  }
+</style>
+</head>
+<body>
+
+  <div class="title">
+    <svg class="lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <rect x="4" y="11" width="16" height="10" rx="2"></rect>
+      <path d="M8 11V7a4 4 0 0 1 8 0v4"></path>
+    </svg>
+    <h1>AES Encrypt &amp; Decrypt</h1>
+  </div>
+  <p class="subtitle">Secure your messages using AES-256-GCM.</p>
+
+  <!-- Section 1: Encrypt -->
+  <section id="enc-sec">
+    <h2>Encrypt: plaintext to ciphertext</h2>
+
+    <label for="enc-key">Password</label>
+    <div class="pw-row">
+      <input id="enc-key" type="password" autocomplete="off">
+      <button type="button" class="ghost" id="enc-toggle" aria-controls="enc-key" aria-pressed="false">Show</button>
+    </div>
+
+    <label for="plain-in">Plaintext</label>
+    <textarea id="plain-in" placeholder="Type the text to encrypt"></textarea>
+
+    <div class="actions">
+      <button id="enc-btn">Encrypt</button>
+      <button type="button" class="ghost" id="enc-clear">Clear</button>
+    </div>
+    <p id="enc-msg" class="msg" role="status" aria-live="polite"></p>
+
+    <div class="out-head">
+      <label for="cipher-out">Ciphertext (output)</label>
+      <button type="button" class="ghost" id="copy-btn">Copy</button>
+    </div>
+    <textarea id="cipher-out" readonly></textarea>
+  </section>
+
+  <!-- Section 2: Decrypt -->
+  <section id="dec-sec">
+    <h2>Decrypt: ciphertext to plaintext</h2>
+
+    <label for="dec-key">Password</label>
+    <div class="pw-row">
+      <input id="dec-key" type="password" autocomplete="off">
+      <button type="button" class="ghost" id="dec-toggle" aria-controls="dec-key" aria-pressed="false">Show</button>
+    </div>
+
+    <label for="cipher-in">Ciphertext</label>
+    <textarea id="cipher-in" placeholder="Paste the ciphertext to decrypt"></textarea>
+
+    <div class="actions">
+      <button id="dec-btn">Decrypt</button>
+      <button type="button" class="ghost" id="dec-clear">Clear</button>
+    </div>
+    <p id="dec-msg" class="msg" role="status" aria-live="polite"></p>
+
+    <label for="plain-out">Plaintext (output)</label>
+    <textarea id="plain-out" readonly></textarea>
+  </section>
+
+  <script>
+  // Tools to turn text into bytes and back
+  const encoder = new TextEncoder();
+  const decoder = new TextDecoder();
+
+  // Shortcut: get an element by its id
+  const $ = (id) => document.getElementById(id);
+
+  // Show a message (error by default, green when ok is true)
+  function setMsg(el, text, ok) {
+    el.textContent = text;
+    el.classList.toggle("ok", !!ok);
+  }
+
+  // Bytes -> Base64 text (so ciphertext is readable and copyable)
+  function bytesToBase64(bytes) {
+    let binary = "";
+    new Uint8Array(bytes).forEach((b) => (binary += String.fromCharCode(b)));
+    return btoa(binary);
+  }
+
+  // Base64 text -> bytes
+  function base64ToBytes(text) {
+    return Uint8Array.from(atob(text.trim()), (c) => c.charCodeAt(0));
+  }
+
+  // Turn a password + salt into a real 256-bit AES key
+  async function deriveKey(password, salt) {
+    const baseKey = await crypto.subtle.importKey(
+      "raw",
+      encoder.encode(password),
+      "PBKDF2",
+      false,
+      ["deriveKey"]
+    );
+
+    return crypto.subtle.deriveKey(
+      { name: "PBKDF2", salt: salt, iterations: 200000, hash: "SHA-256" },
+      baseKey,
+      { name: "AES-GCM", length: 256 },
+      false,
+      ["encrypt", "decrypt"]
+    );
+  }
+
+  // Show/Hide password buttons
+  function wireToggle(buttonId, inputId) {
+    $(buttonId).onclick = () => {
+      const input = $(inputId);
+      const showing = input.type === "text";
+      input.type = showing ? "password" : "text";
+      $(buttonId).textContent = showing ? "Show" : "Hide";
+      $(buttonId).setAttribute("aria-pressed", String(!showing));
+    };
+  }
+  wireToggle("enc-toggle", "enc-key");
+  wireToggle("dec-toggle", "dec-key");
+
+  // Encrypt button
+  $("enc-btn").onclick = async () => {
+    const msg = $("enc-msg");
+    setMsg(msg, "");
+
+    const password = $("enc-key").value;
+    const text = $("plain-in").value;
+
+    if (!password || !text) {
+      setMsg(msg, "Enter a password and the text to encrypt.");
+      return;
+    }
+
+    try {
+      const salt = crypto.getRandomValues(new Uint8Array(16));
+      const iv = crypto.getRandomValues(new Uint8Array(12));
+
+      const key = await deriveKey(password, salt);
+
+      const encrypted = await crypto.subtle.encrypt(
+        { name: "AES-GCM", iv: iv },
+        key,
+        encoder.encode(text)
+      );
+
+      const packed = new Uint8Array(16 + 12 + encrypted.byteLength);
+      packed.set(salt, 0);
+      packed.set(iv, 16);
+      packed.set(new Uint8Array(encrypted), 28);
+
+      $("cipher-out").value = bytesToBase64(packed);
+      setMsg(msg, "Encryption complete. Your ciphertext is ready to copy.", true);
+    } catch (error) {
+      setMsg(msg, "Encryption failed.");
+    }
+  };
+
+  // Decrypt button
+  $("dec-btn").onclick = async () => {
+    const msg = $("dec-msg");
+    setMsg(msg, "");
+    $("plain-out").value = "";
+
+    const password = $("dec-key").value;
+    const data = $("cipher-in").value;
+
+    if (!password || !data.trim()) {
+      setMsg(msg, "Enter a password and the ciphertext to decrypt.");
+      return;
+    }
+
+    try {
+      const packed = base64ToBytes(data);
+
+      const salt = packed.slice(0, 16);
+      const iv = packed.slice(16, 28);
+      const encrypted = packed.slice(28);
+
+      const key = await deriveKey(password, salt);
+
+      const decrypted = await crypto.subtle.decrypt(
+        { name: "AES-GCM", iv: iv },
+        key,
+        encrypted
+      );
+
+      $("plain-out").value = decoder.decode(decrypted);
+      setMsg(msg, "Decryption complete. Your plaintext is shown below.", true);
+    } catch (error) {
+      setMsg(msg, "Could not decrypt. Check the password and that the ciphertext is complete.");
+    }
+  };
+
+  // Copy button for the ciphertext output
+  let copyTimer;
+  $("copy-btn").onclick = async () => {
+    const out = $("cipher-out");
+    const msg = $("enc-msg");
+    const btn = $("copy-btn");
+
+    if (!out.value) {
+      setMsg(msg, "Nothing to copy yet. Encrypt some text first.");
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(out.value);
+    } catch (error) {
+      // Fallback for browsers that block the clipboard API
+      out.select();
+      document.execCommand("copy");
+      out.setSelectionRange(0, 0);
+    }
+
+    btn.textContent = "Copied!";
+    setMsg(msg, "Ciphertext copied to clipboard.", true);
+    clearTimeout(copyTimer);
+    copyTimer = setTimeout(() => { btn.textContent = "Copy"; }, 1800);
+  };
+
+  // Clear buttons: reset every field, message and Show/Hide state in a section
+  function wireClear(buttonId, fieldIds, keyId, toggleId, msgId) {
+    $(buttonId).onclick = () => {
+      fieldIds.forEach((id) => { $(id).value = ""; });
+      $(keyId).type = "password";
+      $(toggleId).textContent = "Show";
+      $(toggleId).setAttribute("aria-pressed", "false");
+      setMsg($(msgId), "");
+    };
+  }
+  wireClear("enc-clear", ["enc-key", "plain-in", "cipher-out"], "enc-key", "enc-toggle", "enc-msg");
+  wireClear("dec-clear", ["dec-key", "cipher-in", "plain-out"], "dec-key", "dec-toggle", "dec-msg");
+</script>
+</body>
+</html>
